@@ -1,9 +1,6 @@
 if defined?(::Mongoid) && !NewRelic::Control.instance['disable_mongodb']
-
   module Mongoid #:nodoc:
     module Document
-
-      #adding call to super
       class << self
         alias :old_included :included
 
@@ -16,7 +13,6 @@ if defined?(::Mongoid) && !NewRelic::Control.instance['disable_mongodb']
   end
 
   module RPMContrib::Instrumentation
-
     module Mongoid
       def included(model)
         model.class_eval do
@@ -47,5 +43,13 @@ if defined?(::Mongoid) && !NewRelic::Control.instance['disable_mongodb']
       end
     end
     ::Mongoid::Document.extend(RPMContrib::Instrumentation::Mongoid)
+  end
+
+  ::Mongoid::Cursor.class_eval do
+    add_method_tracer :next_document, 'Database/#{self.class.name}/next_document'
+    add_method_tracer :to_a, 'Database/#{self.class.name}/to_a'
+    add_method_tracer :each, 'Database/#{self.class.name}/each'
+
+    ::Mongoid::Cursor::OPERATIONS.each { |operation| add_method_tracer(operation, ['Database/#{self.class.name}/', operation.to_s].join) }
   end
 end

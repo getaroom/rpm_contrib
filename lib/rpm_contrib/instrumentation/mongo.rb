@@ -10,6 +10,17 @@ if defined?(::Mongo) && !NewRelic::Control.instance['disable_mongodb']
         end
       end
     end
+
+    class Cursor
+      class << self
+        alias :old_included :included
+
+        def included(model)
+          old_included(model)
+          super
+        end
+      end
+    end
   end
 
   module RPMContrib::Instrumentation
@@ -27,7 +38,21 @@ if defined?(::Mongo) && !NewRelic::Control.instance['disable_mongodb']
           super
         end
       end
+
+      module Cursor
+        def included(model)
+          model.class_eval do
+            [
+              :next_document
+            ].each do |method|
+              add_method_tracer method, "Database/Mongo/#{method}"
+            end
+          end
+          super
+        end
+      end
     end
     ::Mongo::Collection.extend(RPMContrib::Instrumentation::Mongo::Collection)
+    ::Mongo::Cursor.extend(RPMContrib::Instrumentation::Mongo::Cursor)
   end
 end
