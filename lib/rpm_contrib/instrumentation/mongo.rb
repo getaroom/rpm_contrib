@@ -12,7 +12,7 @@ if defined?(::Mongo) && !NewRelic::Control.instance['disable_mongodb']
     [
       :next_document, :count, :refresh, :to_a
     ].each do |method|
-      add_method_tracer method, ['Database/#{self.class.name}', method.to_s].join
+      add_method_tracer method, ['Database/#{self.class.name}/', method.to_s].join
     end
   end
 end
