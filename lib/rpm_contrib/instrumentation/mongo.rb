@@ -10,7 +10,7 @@ if defined?(::Mongo) && !NewRelic::Control.instance['disable_mongodb']
 
   ::Mongo::Cursor.class_eval do
     [
-      :count, :refresh, :send_initial_query, :close
+      :count, :refresh, :close
     ].each do |method|
       add_method_tracer method, ['Database/#{self.collection.name}/', method.to_s].join
     end
